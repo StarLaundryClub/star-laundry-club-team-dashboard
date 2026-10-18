@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mark Ticket Fixed — Star Laundry Club</title>
+<style>
+  :root { --aqua: #A9CBD1; --charcoal: #292929; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f7f9fa; color: var(--charcoal); padding: 1rem; max-width: 500px; margin: 0 auto; }
+  .card { background: #fff; border-radius: 14px; padding: 1.25rem; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 1rem; }
+  h1 { font-size: 1.2rem; margin-bottom: 0.25rem; }
+  .wo { font-size: 1.6rem; font-weight: 800; color: var(--charcoal); }
+  .sub { font-size: 0.9rem; opacity: 0.65; margin-bottom: 1rem; }
+  label { display: block; font-size: 0.85rem; font-weight: 600; margin: 0.9rem 0 0.35rem; }
+  textarea, input[type=text] { width: 100%; padding: 0.7rem; font-size: 1rem; border: 1.5px solid #ddd; border-radius: 10px; font-family: inherit; }
+  textarea { min-height: 90px; resize: vertical; }
+  textarea:focus, input:focus { outline: none; border-color: var(--aqua); }
+  button { width: 100%; padding: 0.9rem; font-size: 1.05rem; font-weight: 700; background: var(--charcoal); color: #fff; border: none; border-radius: 12px; margin-top: 1.1rem; cursor: pointer; }
+  button:disabled { opacity: 0.5; }
+  .done { text-align: center; padding: 2rem 1rem; }
+  .done .check { font-size: 3rem; margin-bottom: 0.5rem; }
+  .done a { display: inline-block; margin-top: 1rem; color: var(--charcoal); font-weight: 600; }
+  .err { color: #c0392b; font-size: 0.9rem; margin-top: 0.6rem; }
+</style>
+</head>
+<body>
+<div class="card" id="form-card">
+  <div class="wo" id="wo">…</div>
+  <div class="sub" id="sub">Loading ticket…</div>
+  <form id="fixform">
+    <label for="what">What did you do to fix it?</label>
+    <textarea id="what" required placeholder="e.g. Cleared the drain pump filter, ran a test cycle — draining normally now."></textarea>
+    <label for="name">Your name</label>
+    <input type="text" id="name" required placeholder="Your name" autocomplete="name">
+    <button type="submit" id="btn">Mark as Fixed</button>
+    <div class="err" id="err"></div>
+  </form>
+</div>
+<div class="card done" id="done-card" style="display:none">
+  <div class="check">✅</div>
+  <h1>Ticket closed</h1>
+  <p class="sub">The manager has been notified.</p>
+  <a href="https://muse.ai/s/star-laundry-club-staff-app-gxi6zxobxy9xvzxy">← Back to Staff App</a>
+</div>
+<script>
+const FORM_ID = '166NXipKpxzya5bPGKjAnQP99sLglwUE96IPiRZwUy40';
+const params = new URLSearchParams(location.search);
+const wo = params.get('wo') || '';
+const store = params.get('store') || '';
+const desc = params.get('desc') || '';
+document.getElementById('wo').textContent = wo || 'Unknown ticket';
+document.getElementById('sub').textContent = (store ? store.charAt(0).toUpperCase()+store.slice(1) : '') + (desc ? ' · ' + desc : '');
+
+document.getElementById('fixform').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = document.getElementById('btn');
+  const err = document.getElementById('err');
+  btn.disabled = true; btn.textContent = 'Submitting…'; err.textContent = '';
+  const what = document.getElementById('what').value.trim();
+  const name = document.getElementById('name').value.trim();
+  const fd = new FormData();
+  fd.append('entry.815206049', 'Fix update — it\'s fixed');
+  fd.append('entry.521326413', wo);
+  fd.append('entry.205981486', store);
+  fd.append('entry.901995024', what);
+  fd.append('entry.1411782997', name);
+  try {
+    await fetch('https://docs.google.com/forms/d/' + FORM_ID + '/formResponse', {
+      method: 'POST', mode: 'no-cors', body: fd
+    });
+    document.getElementById('form-card').style.display = 'none';
+    document.getElementById('done-card').style.display = 'block';
+    setTimeout(() => { location.href = 'https://muse.ai/s/star-laundry-club-staff-app-gxi6zxobxy9xvzxy'; }, 2500);
+  } catch (ex) {
+    err.textContent = 'Could not submit. Check your connection and try again.';
+    btn.disabled = false; btn.textContent = 'Mark as Fixed';
+  }
+});
+</script>
+</body>
+</html>
