@@ -44,7 +44,7 @@
   <a href="https://muse.ai/s/star-laundry-club-staff-app-gxi6zxobxy9xvzxy">← Back to Staff App</a>
 </div>
 <script>
-const FORM_ID = '166NXipKpxzya5bPGKjAnQP99sLglwUE96IPiRZwUy40';
+const ENDPOINT = 'https://script.google.com/macros/s/AKfycby7CoIqNE3Z-WvNdydIn4VEUse-KvPf5o7w6netdvzAq128ObgwSQT_NJ26h0ceFEW3/exec';
 const params = new URLSearchParams(location.search);
 const wo = params.get('wo') || '';
 const store = params.get('store') || '';
@@ -59,15 +59,11 @@ document.getElementById('fixform').addEventListener('submit', async (e) => {
   btn.disabled = true; btn.textContent = 'Submitting…'; err.textContent = '';
   const what = document.getElementById('what').value.trim();
   const name = document.getElementById('name').value.trim();
-  const fd = new FormData();
-  fd.append('entry.815206049', 'Fix update — it\'s fixed');
-  fd.append('entry.521326413', wo);
-  fd.append('entry.205981486', store);
-  fd.append('entry.901995024', what);
-  fd.append('entry.1411782997', name);
   try {
-    await fetch('https://docs.google.com/forms/d/' + FORM_ID + '/formResponse', {
-      method: 'POST', mode: 'no-cors', body: fd
+    await fetch(ENDPOINT, {
+      method: 'POST', mode: 'no-cors',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ticket: wo, store: store, what: what, name: name})
     });
     document.getElementById('form-card').style.display = 'none';
     document.getElementById('done-card').style.display = 'block';
