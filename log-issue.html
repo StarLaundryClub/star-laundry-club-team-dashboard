@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Log an Issue — Star Laundry Club</title>
+<style>
+  :root { --aqua: #A9CBD1; --charcoal: #292929; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f7f9fa; color: var(--charcoal); padding: 1rem; max-width: 500px; margin: 0 auto; }
+  .card { background: #fff; border-radius: 14px; padding: 1.25rem; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 1rem; }
+  h1 { font-size: 1.2rem; margin-bottom: 0.25rem; }
+  .sub { font-size: 0.9rem; opacity: 0.65; margin-bottom: 1rem; }
+  label { display: block; font-size: 0.85rem; font-weight: 600; margin: 0.9rem 0 0.35rem; }
+  textarea, input[type=text], select { width: 100%; padding: 0.7rem; font-size: 1rem; border: 1.5px solid #ddd; border-radius: 10px; font-family: inherit; }
+  textarea { min-height: 90px; resize: vertical; }
+  textarea:focus, input:focus, select:focus { outline: none; border-color: var(--aqua); }
+  button { width: 100%; padding: 0.9rem; font-size: 1.05rem; font-weight: 700; background: var(--charcoal); color: #fff; border: none; border-radius: 12px; margin-top: 1.1rem; cursor: pointer; }
+  button:disabled { opacity: 0.5; }
+  .done { text-align: center; padding: 2rem 1rem; }
+  .done .check { font-size: 3rem; margin-bottom: 0.5rem; }
+  .done a { display: inline-block; margin-top: 1rem; color: var(--charcoal); font-weight: 600; }
+  .err { color: #c0392b; font-size: 0.9rem; margin-top: 0.6rem; }
+</style>
+</head>
+<body>
+<div class="card" id="form-card">
+  <h1>Log an Issue</h1>
+  <div class="sub">Quick log — no work order needed. Goes to the troubleshooting log.</div>
+  <form id="issueform">
+    <label for="store">Store</label>
+    <select id="store" required>
+      <option value="">Choose…</option>
+      <option value="brighton">Brighton</option>
+      <option value="nashua">Nashua</option>
+      <option value="orem">Orem</option>
+    </select>
+    <label for="what">What's the issue?</label>
+    <textarea id="what" required placeholder="e.g. Dryer #5 runs but no heat. Noticed during closing."></textarea>
+    <label for="name">Your name</label>
+    <input type="text" id="name" required placeholder="Your name" autocomplete="name">
+    <button type="submit" id="btn">Log Issue</button>
+    <div class="err" id="err"></div>
+  </form>
+</div>
+<div class="card done" id="done-card" style="display:none">
+  <div class="check">✅</div>
+  <h1>Issue logged</h1>
+  <p class="sub">It's in the troubleshooting log.</p>
+  <a href="https://muse.ai/s/star-laundry-club-staff-app-gxi6zxobxy9xvzxy">← Back to Staff App</a>
+</div>
+<script>
+const ENDPOINT = 'https://script.google.com/macros/s/AKfycby7CoIqNE3Z-WvNdydIn4VEUse-KvPf5o7w6netdvzAq128ObgwSQT_NJ26h0ceFEW3/exec';
+document.getElementById('issueform').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = document.getElementById('btn');
+  const err = document.getElementById('err');
+  btn.disabled = true; btn.textContent = 'Submitting…'; err.textContent = '';
+  const store = document.getElementById('store').value;
+  const what = document.getElementById('what').value.trim();
+  const name = document.getElementById('name').value.trim();
+  try {
+    await fetch(ENDPOINT + '?action=logIssue', {
+      method: 'POST', mode: 'no-cors',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({store: store, what: what, name: name})
+    });
+    document.getElementById('form-card').style.display = 'none';
+    document.getElementById('done-card').style.display = 'block';
+    setTimeout(() => { location.href = 'https://muse.ai/s/star-laundry-club-staff-app-gxi6zxobxy9xvzxy'; }, 2500);
+  } catch (ex) {
+    err.textContent = 'Could not submit. Check your connection and try again.';
+    btn.disabled = false; btn.textContent = 'Log Issue';
+  }
+});
+</script>
+</body>
+</html>
