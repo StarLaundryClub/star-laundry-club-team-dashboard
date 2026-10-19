@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Report an Issue — Star Laundry Club</title>
+<style>
+  :root {
+    --aqua: #A9CBD1;
+    --aqua-dark: #8FB5BC;
+    --charcoal: #292929;
+    --bg: #F4F7F8;
+    --card: #FFFFFF;
+    --border: #E2E8EB;
+    --text-dim: #6B767A;
+    --urgent: #C0392B;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html { font-size: 16px; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg); color: var(--charcoal);
+    min-height: 100vh; min-height: 100dvh;
+    display: flex; flex-direction: column;
+  }
+  header {
+    background: var(--charcoal); color: #fff;
+    padding: 0.9rem 1rem calc(0.9rem + env(safe-area-inset-top) * 0);
+    padding-top: calc(0.9rem + env(safe-area-inset-top));
+    position: sticky; top: 0; z-index: 10;
+  }
+  header .brand { display: flex; align-items: center; gap: 0.6rem; }
+  header .logo-dot {
+    width: 34px; height: 34px; border-radius: 10px; background: var(--aqua);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.2rem; font-weight: 800; color: var(--charcoal); flex: none;
+  }
+  header h1 { font-size: 1.05rem; font-weight: 700; letter-spacing: 0.01em; }
+  header p { font-size: 0.78rem; opacity: 0.65; margin-top: 1px; }
+  .progress { height: 4px; background: rgba(255,255,255,0.15); margin-top: 0.7rem; border-radius: 2px; overflow: hidden; }
+  .progress > div { height: 100%; background: var(--aqua); border-radius: 2px; transition: width 0.3s ease; width: 0%; }
+
+  main { flex: 1; padding: 1rem 1rem 2rem; max-width: 520px; width: 100%; margin: 0 auto; }
+  .step { display: none; animation: fadein 0.25s ease; }
+  .step.active { display: block; }
+  @keyframes fadein { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+  .q-label { font-size: 1.25rem; font-weight: 700; margin-bottom: 0.35rem; }
+  .q-hint { font-size: 0.88rem; color: var(--text-dim); margin-bottom: 1rem; }
+
+  .opt-grid { display: grid; gap: 0.7rem; }
+  .opt {
+    background: var(--card); border: 2px solid var(--border); border-radius: 14px;
+    padding: 1rem 1.1rem; font-size: 1.05rem; font-weight: 600; color: var(--charcoal);
+    display: flex; align-items: center; gap: 0.8rem; cursor: pointer; width: 100%; text-align: left;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .opt:active { transform: scale(0.985); }
+  .opt .icon { font-size: 1.5rem; flex: none; }
+  .opt .sub { display: block; font-size: 0.8rem; font-weight: 400; color: var(--text-dim); margin-top: 2px; }
+  .opt.selected { border-color: var(--aqua-dark); background: #EFF6F7; }
+  .opt.urgent-opt.selected { border-color: var(--urgent); background: #FDECEA; }
+
+  .field { margin-bottom: 1rem; }
+  .field label { display: block; font-size: 0.85rem; font-weight: 700; margin-bottom: 0.35rem; }
+  .field .hint { font-size: 0.78rem; color: var(--text-dim); margin-bottom: 0.4rem; }
+  select, input[type=text], textarea {
+    width: 100%; padding: 0.85rem 0.9rem; font-size: 1rem; font-family: inherit;
+    border: 2px solid var(--border); border-radius: 12px; background: var(--card); color: var(--charcoal);
+  }
+  select:focus, input:focus, textarea:focus { outline: none; border-color: var(--aqua-dark); }
+  textarea { min-height: 110px; resize: vertical; }
+
+  .nav { display: flex; gap: 0.7rem; margin-top: 1.4rem; }
+  .btn {
+    flex: 1; padding: 1rem; font-size: 1.05rem; font-weight: 700; border-radius: 14px;
+    border: none; cursor: pointer; font-family: inherit;
+  }
+  .btn-back { background: var(--card); color: var(--charcoal); border: 2px solid var(--border); flex: 0 0 auto; padding: 1rem 1.3rem; }
+  .btn-next { background: var(--charcoal); color: #fff; }
+  .btn-next:disabled { opacity: 0.4; }
+  .btn-next:active { transform: scale(0.98); }
+
+  .review-card { background: var(--card); border: 2px solid var(--border); border-radius: 14px; padding: 1rem 1.1rem; margin-bottom: 1rem; }
+  .review-row { display: flex; justify-content: space-between; gap: 1rem; padding: 0.45rem 0; border-bottom: 1px solid var(--bg); font-size: 0.95rem; }
+  .review-row:last-child { border-bottom: none; }
+  .review-row .k { color: var(--text-dim); font-weight: 600; flex: none; }
+  .review-row .v { text-align: right; font-weight: 600; }
+  .badge-urgent { color: var(--urgent); font-weight: 800; }
+
+  .done-wrap { text-align: center; padding: 2.5rem 1rem; }
+  .done-check { font-size: 4rem; margin-bottom: 0.8rem; }
+  .done-wrap h2 { font-size: 1.4rem; margin-bottom: 0.4rem; }
+  .done-wrap p { color: var(--text-dim); font-size: 0.95rem; margin-bottom: 0.4rem; }
+  .ref-box {
+    display: inline-block; background: var(--card); border: 2px dashed var(--aqua-dark);
+    border-radius: 10px; padding: 0.6rem 1.1rem; font-family: monospace; font-size: 1rem;
+    margin: 0.8rem 0; font-weight: 700;
+  }
+  .spinner {
+    width: 44px; height: 44px; margin: 0 auto 1rem; border-radius: 50%;
+    border: 4px solid var(--border); border-top-color: var(--aqua-dark);
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .err { color: var(--urgent); font-size: 0.9rem; margin-top: 0.8rem; text-align: center; font-weight: 600; }
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <div class="logo-dot">✦</div>
+    <div>
+      <h1>Report an Issue</h1>
+      <p>Star Laundry Club</p>
+    </div>
+  </div>
+  <div class="progress"><div id="progressBar"></div></div>
+</header>
+
+<main id="main">
+  <!-- STEP 1: Store -->
+  <section class="step active" data-step="store">
+    <div class="q-label">Which store?</div>
+    <div class="q-hint">Pick the location where the issue is.</div>
+    <div class="opt-grid" id="storeOpts">
+      <button class="opt" data-value="brighton"><span class="icon">🏪</span><span>Brighton<span class="sub">1439A Commonwealth Ave, Boston MA</span></span></button>
+      <button class="opt" data-value="nashua"><span class="icon">🏪</span><span>Nashua<span class="sub">300 Main St, Nashua NH</span></span></button>
+      <button class="opt" data-value="orem"><span class="icon">🏪</span><span>Orem<span class="sub">79 N State St, Orem UT</span></span></button>
+    </div>
+  </section>
+
+  <!-- STEP 2: Issue type -->
+  <section class="step" data-step="issueType">
+    <div class="q-label">What kind of issue is this?</div>
+    <div class="q-hint">Choose the closest category.</div>
+    <div class="opt-grid" id="typeOpts">
+      <button class="opt" data-value="Equipment"><span class="icon">🧺</span><span>Equipment<span class="sub">Washers, dryers, card readers, dry-cleaning machines</span></span></button>
+      <button class="opt" data-value="System"><span class="icon">💻</span><span>System<span class="sub">POS, cameras, internet, kiosk, TVs</span></span></button>
+      <button class="opt" data-value="Utilities"><span class="icon">🔧</span><span>Utilities<span class="sub">Boiler, heater, AC, plumbing, water</span></span></button>
+      <button class="opt" data-value="Building"><span class="icon">🏢</span><span>Building<span class="sub">Roof, doors, windows, lighting, restroom</span></span></button>
+    </div>
+    <div class="nav"><button class="btn btn-back" data-back>← Back</button></div>
+  </section>
+
+  <!-- STEP 3a: Equipment subtype -->
+  <section class="step" data-step="equipKind">
+    <div class="q-label">Washer, dryer, or card reader?</div>
+    <div class="q-hint" id="equipKindHint"></div>
+    <div class="opt-grid" id="equipKindOpts"></div>
+    <div class="nav"><button class="btn btn-back" data-back>← Back</button></div>
+  </section>
+
+  <!-- STEP 3b: Equipment details (size + machine #) -->
+  <section class="step" data-step="equipDetail">
+    <div class="q-label" id="equipDetailTitle">Machine details</div>
+    <div class="q-hint">Size and machine number help us find it fast.</div>
+    <div class="field">
+      <label for="sizeSel">Size</label>
+      <select id="sizeSel"></select>
+    </div>
+    <div class="field" id="machineNumWrap">
+      <label for="machineNum">Machine number</label>
+      <div class="hint">If you know it (e.g. 3, 12). Leave blank if unsure.</div>
+      <input type="text" id="machineNum" inputmode="numeric" placeholder="#">
+    </div>
+    <div class="nav">
+      <button class="btn btn-back" data-back>← Back</button>
+      <button class="btn btn-next" id="equipDetailNext" disabled>Next →</button>
+    </div>
+  </section>
+
+  <!-- STEP 3c: Problem picker (washer/dryer) -->
+  <section class="step" data-step="problem">
+    <div class="q-label">What's the problem?</div>
+    <div class="q-hint">Pick the closest match.</div>
+    <div class="opt-grid" id="problemOpts"></div>
+    <div class="nav"><button class="btn btn-back" data-back>← Back</button></div>
+  </section>
+
+  <!-- STEP 3d: System picker -->
+  <section class="step" data-step="systemPick">
+    <div class="q-label">Which system?</div>
+    <div class="opt-grid" id="systemOpts"></div>
+    <div class="nav"><button class="btn btn-back" data-back>← Back</button></div>
+  </section>
+
+  <!-- STEP 3e: Utility picker -->
+  <section class="step" data-step="utilityPick">
+    <div class="q-label">Which utility?</div>
+    <div class="opt-grid" id="utilityOpts"></div>
+    <div class="nav"><button class="btn btn-back" data-back>← Back</button></div>
+  </section>
+
+  <!-- STEP 3f: Building picker -->
+  <section class="step" data-step="buildingPick">
+    <div class="q-label">What part of the building?</div>
+    <div class="opt-grid" id="buildingOpts"></div>
+    <div class="nav"><button class="btn btn-back" data-back>← Back</button></div>
+  </section>
+
+  <!-- STEP 4: Description -->
+  <section class="step" data-step="description">
+    <div class="q-label">Describe what happened</div>
+    <div class="q-hint">A sentence or two — what you saw, heard, or found.</div>
+    <div class="field">
+      <textarea id="descText" placeholder="e.g. Washer filled with water but never started draining. Water sitting in the drum."></textarea>
+    </div>
+    <div class="nav">
+      <button class="btn btn-back" data-back>← Back</button>
+      <button class="btn btn-next" id="descNext" disabled>Next →</button>
+    </div>
+  </section>
+
+  <!-- STEP 5: Urgency + name -->
+  <section class="step" data-step="who">
+    <div class="q-label">How urgent is this?</div>
+    <div class="opt-grid" id="urgencyOpts" style="margin-bottom:1.4rem">
+      <button class="opt" data-value="Normal"><span class="icon">🟢</span><span>Normal<span class="sub">Can wait for the next visit</span></span></button>
+      <button class="opt urgent-opt" data-value="Urgent"><span class="icon">🔴</span><span>Urgent<span class="sub">Needs attention ASAP</span></span></button>
+    </div>
+    <div class="q-label" style="font-size:1.05rem">Your name</div>
+    <div class="field">
+      <input type="text" id="nameInput" placeholder="Your name" autocomplete="name">
+    </div>
+    <div class="nav">
+      <button class="btn btn-back" data-back>← Back</button>
+      <button class="btn btn-next" id="whoNext" disabled>Review →</button>
+    </div>
+  </section>
+
+  <!-- STEP 6: Review + submit -->
+  <section class="step" data-step="review">
+    <div class="q-label">Review your report</div>
+    <div class="q-hint">Make sure it looks right, then submit.</div>
+    <div class="review-card" id="reviewCard"></div>
+    <div class="nav">
+      <button class="btn btn-back" data-back>← Back</button>
+      <button class="btn btn-next" id="submitBtn">Submit Report</button>
+    </div>
+    <div class="err" id="submitErr"></div>
+  </section>
+
+  <!-- STEP 7: Sending -->
+  <section class="step" data-step="sending">
+    <div class="done-wrap">
+      <div class="spinner"></div>
+      <h2>Sending…</h2>
+      <p>Filing your report.</p>
+    </div>
+  </section>
+
+  <!-- STEP 8: Done -->
+  <section class="step" data-step="done">
+    <div class="done-wrap">
+      <div class="done-check">✅</div>
+      <h2>Report filed</h2>
+      <p>Your reference:</p>
+      <div class="ref-box" id="refBox"></div>
+      <p>The ticket number will appear in the staff app once it's filed.</p>
+      <p style="margin-top:0.6rem">Returning to the staff app…</p>
+    </div>
+  </section>
+</main>
+
+<script>
+/* ================= DATA ================= */
+var STORE_DATA = {
+  brighton: {
+    name: "Brighton",
+    washers: ["45 lb", "60 lb", "30 lb", "20 lb"],
+    dryers: ["35 lb"],
+    hasCardReaders: false,
+    hasDryCleaning: false
+  },
+  nashua: {
+    name: "Nashua",
+    washers: ["50 lb", "40 lb", "80 lb", "25 lb", "20 lb"],
+    dryers: ["50 lb (stacks #1–#2)", "30 lb (stacks #3–#14)"],
+    hasCardReaders: true,
+    readerLabel: "Fascard",
+    hasDryCleaning: true,
+    dryCleaning: ["Dry-cleaning machine", "Shirt presser", "Collar & cuff presser", "Pants steamer", "Pants presser", "Utility presser", "Coats & blazer presser", "Sweater presser", "Stain spotter"]
+  },
+  orem: {
+    name: "Orem",
+    washers: ["100 lb", "80 lb", "60 lb", "40 lb", "30 lb"],
+    dryers: ["45 lb double-stack", "75 lb"],
+    hasCardReaders: true,
+    readerLabel: "Cents",
+    hasDryCleaning: false
+  }
+};
+
+var PROBLEMS = {
+  washer: ["Won't start", "Not draining", "Door issue (won't open, lock, or latch)", "Leaking water", "Making loud noise", "Stopped mid-cycle", "Coin jam", "Other"],
+  dryer: ["Won't start", "Not heating", "Door issue (won't open, lock, or latch)", "Making loud noise", "Stopped mid-cycle", "Coin jam", "Other"],
+  cardReader: ["Card reader not responding", "Payment declined repeatedly", "Reader screen blank or frozen", "Other"],
+  dryclean: ["Won't start", "Not cleaning properly", "Leaking", "Making loud noise", "Steam/press issue", "Other"]
+};
+
+var SYSTEMS = {
+  brighton: ["POS register", "Security cameras", "Internet / WiFi", "Alarm panel", "TVs", "Detergent dispenser", "Vending machine"],
+  nashua: ["POS register", "Security cameras", "Internet / WiFi", "Alarm panel", "TVs", "Detergent dispenser", "Vending machine", "Fascard kiosk", "ATM"],
+  orem: ["POS system", "Security cameras", "Internet / WiFi", "Alarm panel", "TVs", "Detergent dispenser", "Vending machine", "Cents payment kiosk", "Automatic sliding door"]
+};
+
+var UTILITIES = ["Boiler", "Heater", "AC", "Hot water tank", "Main plumbing", "Water softener", "Sewer pumps", "Gas line"];
+
+var BUILDING = ["Roof / ceiling leak", "Flooring", "Doors & locks", "Windows", "Walls / paint", "Interior lighting", "Exterior & parking lot", "Restroom fixtures"];
+
+var ENDPOINT = "https://script.google.com/macros/s/AKfycby7CoIqNE3Z-WvNdydIn4VEUse-KvPf5o7w6netdvzAq128ObgwSQT_NJ26h0ceFEW3/exec?action=newIssue";
+var STAFF_APP = "https://muse.ai/s/star-laundry-club-staff-app-gxi6zxobxy9xvzxy";
+
+/* ================= STATE ================= */
+var S = {
+  store: null,
+  issueType: null,
+  equipKind: null,      // washer | dryer | cardReader | dryclean
+  size: null,
+  machineNum: "",
+  problem: null,
+  system: null,
+  utility: null,
+  building: null,
+  description: "",
+  urgency: null,
+  name: "",
+  subId: null
+};
+
+var stepOrder = ["store", "issueType"]; // dynamic after issueType
+var currentStep = "store";
+
+/* ================= HELPERS ================= */
+function $(id) { return document.getElementById(id); }
+function showStep(name) {
+  document.querySelectorAll(".step").forEach(function (el) {
+    el.classList.toggle("active", el.dataset.step === name);
+  });
+  currentStep = name;
+  var idx = stepOrder.indexOf(name);
+  var pct = idx >= 0 ? Math.round(((idx + 1) / stepOrder.length) * 100) : 100;
+  $("progressBar").style.width = pct + "%";
+  window.scrollTo(0, 0);
+}
+function cap(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : s; }
+
+function buildFlow() {
+  stepOrder = ["store", "issueType"];
+  if (S.issueType === "Equipment") {
+    stepOrder.push("equipKind");
+    if (S.equipKind === "dryclean") {
+      stepOrder.push("equipDetail", "description", "who", "review");
+    } else if (S.equipKind === "cardReader") {
+      stepOrder.push("equipDetail", "problem", "description", "who", "review");
+    } else {
+      stepOrder.push("equipDetail", "problem", "description", "who", "review");
+    }
+  } else if (S.issueType === "System") {
+    stepOrder.push("systemPick", "description", "who", "review");
+  } else if (S.issueType === "Utilities") {
+    stepOrder.push("utilityPick", "description", "who", "review");
+  } else if (S.issueType === "Building") {
+    stepOrder.push("buildingPick", "description", "who", "review");
+  }
+}
+
+function goNext() {
+  buildFlow();
+  var i = stepOrder.indexOf(currentStep);
+  if (i >= 0 && i < stepOrder.length - 1) showStep(stepOrder[i + 1]);
+}
+function goBack() {
+  buildFlow();
+  var i = stepOrder.indexOf(currentStep);
+  if (i > 0) showStep(stepOrder[i - 1]);
+}
+
+/* ================= STEP 1: STORE ================= */
+document.querySelectorAll("#storeOpts .opt").forEach(function (btn) {
+  btn.addEventListener("click", function () {
+    document.querySelectorAll("#storeOpts .opt").forEach(function (b) { b.classList.remove("selected"); });
+    btn.classList.add("selected");
+    S.store = btn.dataset.value;
+    S.equipKind = null; S.size = null; S.machineNum = "";
+    setTimeout(function () { showStep("issueType"); }, 180);
+  });
+});
+
+/* ================= STEP 2: ISSUE TYPE ================= */
+document.querySelectorAll("#typeOpts .opt").forEach(function (btn) {
+  btn.addEventListener("click", function () {
+    document.querySelectorAll("#typeOpts .opt").forEach(function (b) { b.classList.remove("selected"); });
+    btn.classList.add("selected");
+    S.issueType = btn.dataset.value;
+    setTimeout(function () {
+      if (S.issueType === "Equipment") renderEquipKind();
+      else if (S.issueType === "System") renderSystemPick();
+      else if (S.issueType === "Utilities") renderUtilityPick();
+      else if (S.issueType === "Building") renderBuildingPick();
+    }, 180);
+  });
+});
+
+/* ================= EQUIPMENT KIND ================= */
+function renderEquipKind() {
+  var wrap = $("equipKindOpts");
+  wrap.innerHTML = "";
+  var opts = [
+    { v: "washer", icon: "🌀", t: "Washer", s: "Top-load / front-load washing machines" },
+    { v: "dryer", icon: "💨", t: "Dryer", s: "Tumble dryers" }
+  ];
+  var sd = STORE_DATA[S.store];
+  if (sd.hasCardReaders) {
+    opts.push({ v: "cardReader", icon: "💳", t: "Card reader", s: sd.readerLabel + " payment reader on a machine" });
+  } else {
+    opts.push({ v: "cardReader", icon: "🪙", t: "Coin mechanism", s: "Coin slot / coin box issue" });
+  }
+  if (sd.hasDryCleaning) {
+    opts.push({ v: "dryclean", icon: "👔", t: "Dry-cleaning equipment", s: "Pressers, spotters, dry-cleaning machine" });
+  }
+  opts.forEach(function (o) {
+    var b = document.createElement("button");
+    b.className = "opt"; b.dataset.value = o.v;
+    b.innerHTML = '<span class="icon">' + o.icon + '</span><span>' + o.t + '<span class="sub">' + o.s + '</span></span>';
+    b.addEventListener("click", function () {
+      wrap.querySelectorAll(".opt").forEach(function (x) { x.classList.remove("selected"); });
+      b.classList.add("selected");
+      S.equipKind = o.v;
+      S.size = null; S.machineNum = ""; S.problem = null;
+      setTimeout(renderEquipDetail, 180);
+    });
+    wrap.appendChild(b);
+  });
+  showStep("equipKind");
+}
+
+/* ================= EQUIPMENT DETAIL ================= */
+function renderEquipDetail() {
+  var sd = STORE_DATA[S.store];
+  var title = $("equipDetailTitle");
+  var sel = $("sizeSel");
+  sel.innerHTML = "";
+  var sizes = [];
+  var machineLabel = "Machine number";
+
+  if (S.equipKind === "washer") {
+    title.textContent = "Which washer?";
+    sizes = sd.washers;
+  } else if (S.equipKind === "dryer") {
+    title.textContent = "Which dryer?";
+    sizes = sd.dryers;
+  } else if (S.equipKind === "cardReader") {
+    title.textContent = sd.hasCardReaders ? "Which card reader?" : "Which coin mechanism?";
+    sizes = sd.washers.concat(sd.dryers);
+    machineLabel = "Machine number (the washer/dryer it's attached to)";
+  } else if (S.equipKind === "dryclean") {
+    title.textContent = "Which dry-cleaning equipment?";
+    sizes = sd.dryCleaning;
+    $("machineNumWrap").style.display = "none";
+  }
+
+  if (S.equipKind !== "dryclean") $("machineNumWrap").style.display = "";
+
+  var ph = document.createElement("option");
+  ph.value = ""; ph.textContent = "Choose…"; ph.disabled = true; ph.selected = true;
+  sel.appendChild(ph);
+  sizes.forEach(function (s) {
+    var o = document.createElement("option");
+    o.value = s; o.textContent = s;
+    sel.appendChild(o);
+  });
+  document.querySelector('#machineNumWrap label').textContent = machineLabel;
+  $("machineNum").value = S.machineNum || "";
+  $("equipDetailNext").disabled = true;
+
+  sel.onchange = function () {
+    S.size = sel.value;
+    validateEquipDetail();
+  };
+  $("machineNum").oninput = function () {
+    S.machineNum = $("machineNum").value.trim();
+  };
+
+  showStep("equipDetail");
+}
+function validateEquipDetail() {
+  $("equipDetailNext").disabled = !S.size;
+}
+$("equipDetailNext").addEventListener("click", function () {
+  if (S.equipKind === "dryclean") {
+    S.problem = "Equipment issue";
+    goNext(); // skips problem picker → description
+  } else {
+    renderProblem();
+  }
+});
+
+/* ================= PROBLEM PICKER ================= */
+function renderProblem() {
+  var wrap = $("problemOpts");
+  wrap.innerHTML = "";
+  var list;
+  if (S.equipKind === "washer") list = PROBLEMS.washer;
+  else if (S.equipKind === "dryer") list = PROBLEMS.dryer;
+  else if (S.equipKind === "cardReader") list = PROBLEMS.cardReader;
+  else list = PROBLEMS.dryclean;
+
+  // Brighton is coin-op: drop "Coin jam" duplicates confusion — keep as is, it applies
+  list.forEach(function (p) {
+    var b = document.createElement("button");
+    b.className = "opt"; b.dataset.value = p;
+    b.innerHTML = '<span class="icon">⚠️</span><span>' + p + '</span>';
+    b.addEventListener("click", function () {
+      wrap.querySelectorAll(".opt").forEach(function (x) { x.classList.remove("selected"); });
+      b.classList.add("selected");
+      S.problem = p;
+      setTimeout(goNext, 180);
+    });
+    wrap.appendChild(b);
+  });
+  showStep("problem");
+}
+
+/* ================= SYSTEM / UTILITY / BUILDING ================= */
+function renderPick(wrapId, items, key, stepName) {
+  var wrap = $(wrapId);
+  wrap.innerHTML = "";
+  items.forEach(function (item) {
+    var b = document.createElement("button");
+    b.className = "opt";
+    b.innerHTML = '<span class="icon">🔹</span><span>' + item + '</span>';
+    b.addEventListener("click", function () {
+      wrap.querySelectorAll(".opt").forEach(function (x) { x.classList.remove("selected"); });
+      b.classList.add("selected");
+      S[key] = item;
+      setTimeout(goNext, 180);
+    });
+    wrap.appendChild(b);
+  });
+  showStep(stepName);
+}
+function renderSystemPick() { renderPick("systemOpts", SYSTEMS[S.store], "system", "systemPick"); }
+function renderUtilityPick() { renderPick("utilityOpts", UTILITIES, "utility", "utilityPick"); }
+function renderBuildingPick() { renderPick("buildingOpts", BUILDING, "building", "buildingPick"); }
+
+/* ================= DESCRIPTION ================= */
+$("descText").addEventListener("input", function () {
+  S.description = $("descText").value.trim();
+  $("descNext").disabled = S.description.length < 3;
+});
+$("descNext").addEventListener("click", goNext);
+
+/* ================= URGENCY + NAME ================= */
+document.querySelectorAll("#urgencyOpts .opt").forEach(function (btn) {
+  btn.addEventListener("click", function () {
+    document.querySelectorAll("#urgencyOpts .opt").forEach(function (b) { b.classList.remove("selected"); });
+    btn.classList.add("selected");
+    S.urgency = btn.dataset.value;
+    validateWho();
+  });
+});
+$("nameInput").addEventListener("input", function () {
+  S.name = $("nameInput").value.trim();
+  validateWho();
+});
+function validateWho() {
+  $("whoNext").disabled = !(S.urgency && S.name.length > 0);
+}
+$("whoNext").addEventListener("click", renderReview);
+
+/* ================= BACK BUTTONS ================= */
+document.querySelectorAll("[data-back]").forEach(function (btn) {
+  btn.addEventListener("click", goBack);
+});
+
+/* ================= REVIEW ================= */
+function detailLine() {
+  var parts = [];
+  if (S.size) parts.push(S.size);
+  if (S.machineNum) parts.push("#" + S.machineNum);
+  return parts.join(" ");
+}
+function renderReview() {
+  buildFlow();
+  var rows = [];
+  rows.push(["Store", cap(S.store)]);
+  rows.push(["Issue type", S.issueType]);
+  if (S.issueType === "Equipment") {
+    var kindLabel = { washer: "Washer", dryer: "Dryer", cardReader: STORE_DATA[S.store].hasCardReaders ? "Card reader" : "Coin mechanism", dryclean: "Dry-cleaning equipment" }[S.equipKind];
+    rows.push(["Equipment", kindLabel]);
+    rows.push(["Size", S.size || "—"]);
+    if (S.equipKind !== "dryclean") rows.push(["Machine #", S.machineNum || "—"]);
+    rows.push(["Problem", S.problem || "—"]);
+  } else if (S.issueType === "System") {
+    rows.push(["System", S.system]);
+  } else if (S.issueType === "Utilities") {
+    rows.push(["Utility", S.utility]);
+  } else if (S.issueType === "Building") {
+    rows.push(["Area", S.building]);
+  }
+  rows.push(["Description", S.description]);
+  rows.push(["Urgency", S.urgency === "Urgent" ? '<span class="badge-urgent">🔴 URGENT</span>' : "Normal"]);
+  rows.push(["Reported by", S.name]);
+
+  var html = "";
+  rows.forEach(function (r) {
+    html += '<div class="review-row"><span class="k">' + r[0] + '</span><span class="v">' + r[1] + '</span></div>';
+  });
+  $("reviewCard").innerHTML = html;
+  showStep("review");
+}
+
+/* ================= SUBMIT ================= */
+function makeSubId() {
+  var d = new Date();
+  function p(n) { return (n < 10 ? "0" : "") + n; }
+  return "SUB-" + d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate()) + "-" + p(d.getHours()) + p(d.getMinutes()) + p(d.getSeconds());
+}
+
+$("submitBtn").addEventListener("click", function () {
+  var btn = $("submitBtn");
+  var err = $("submitErr");
+  btn.disabled = true; btn.textContent = "Submitting…"; err.textContent = "";
+  showStep("sending");
+
+  S.subId = makeSubId();
+
+  var kindLabel = { washer: "Washer", dryer: "Dryer", cardReader: "Card reader", dryclean: "Dry-cleaning equipment" }[S.equipKind] || "";
+  var detail = "";
+  if (S.issueType === "Equipment") detail = S.size || "";
+  else if (S.issueType === "System") detail = S.system || "";
+  else if (S.issueType === "Utilities") detail = S.utility || "";
+  else if (S.issueType === "Building") detail = S.building || "";
+
+  var payload = {
+    submissionId: S.subId,
+    timestamp: new Date().toISOString(),
+    store: S.store,
+    issueType: S.issueType,
+    equipKind: kindLabel,
+    size: S.size || "",
+    detail: detail,
+    machineNumber: S.machineNum || "",
+    problem: S.problem || "",
+    system: S.system || "",
+    utility: S.utility || "",
+    building: S.building || "",
+    description: S.description,
+    urgency: S.urgency,
+    name: S.name
+  };
+
+  fetch(ENDPOINT, {
+    method: "POST",
+    mode: "no-cors",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  }).then(function () {
+    $("refBox").textContent = S.subId;
+    showStep("done");
+    setTimeout(function () { window.location.href = STAFF_APP; }, 2500);
+  }).catch(function () {
+    showStep("review");
+    err.textContent = "Couldn't send. Check your connection and try again.";
+    btn.disabled = false; btn.textContent = "Submit Report";
+  });
+});
+
+/* init */
+showStep("store");
+</script>
+</body>
+</html>
